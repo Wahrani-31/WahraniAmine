@@ -1,6 +1,7 @@
 package com.wahrani.amine.viewmodel
 
 import android.app.Application
+import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -11,6 +12,8 @@ import com.wahrani.amine.parser.M3UParser
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.net.HttpURLConnection
+import java.net.URL
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -32,32 +35,66 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     var isLoading by mutableStateOf(true)
         private set
 
+    var errorMessage by mutableStateOf<String?>(null)
+        private set
+
     var favoriteUrls by mutableStateOf<Set<String>>(emptySet())
         private set
 
+    var playlistUrl by mutableStateOf("")
+        private set
+
+    private val prefs = application.getSharedPreferences("wahrani", Context.MODE_PRIVATE)
+    private val defaultUrl = "https://sales-tv4ever.tv/get.php?username=MichaelBe&password=meG7eaUeXMCpEm&type=m3u_plus"
+
     init {
+        playlistUrl = prefs.getString("playlist_url", defaultUrl) ?: defaultUrl
         loadPlaylist()
     }
 
-    private fun loadPlaylist() {
+    fun updatePlaylistUrl(newUrl: String) {
+        playlistUrl = newUrl
+        prefs.edit().putString("playlist_url", newUrl).apply()
+        loadPlaylist()
+    }
+
+    fun loadPlaylist() {
         viewModelScope.launch {
             isLoading = true
+            errorMessage = null
             try {
                 val content = withContext(Dispatchers.IO) {
-                    getApplication<Application>().assets.open("playlist.m3u")
-                        .bufferedReader()
-                        .use { it.readText() }
+                    if (playlistUrl.startsWith("http")) {
+                        downloadUrl(playlistUrl)
+                    } else {
+                        getApplication<Application>().assets.open("playlist.m3u")
+                            .bufferedReader()
+                            .use { it.readText() }
+                    }
                 }
                 val parsed = M3UParser.parse(content)
                 channels = parsed
                 categories = parsed.map { it.groupTitle }.distinct().sorted()
                 applyFilters()
+                if (parsed.isEmpty()) {
+                    errorMessage = "No channels found in playlist"
+                }
             } catch (e: Exception) {
+                errorMessage = e.message ?: "Failed to load playlist"
                 e.printStackTrace()
             } finally {
                 isLoading = false
             }
         }
+    }
+
+    private fun downloadUrl(urlString: String): String {
+        val url = URL(urlString)
+        val conn = url.openConnection() as HttpURLConnection
+        conn.connectTimeout = 15000
+        conn.readTimeout = 30000
+        conn.instanceFollowRedirects = true
+        return conn.inputStream.bufferedReader().use { it.readText() }
     }
 
     fun selectCategory(category: String?) {
