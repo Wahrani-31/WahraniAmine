@@ -266,7 +266,6 @@ private fun ChannelRow(
                 .padding(10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Small logo
             Box(
                 modifier = Modifier
                     .width(48.dp)
