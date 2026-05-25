@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -164,7 +166,7 @@ fun ChannelCard(
             // Favorite icon
             if (isFavorite) {
                 Icon(
-                    imageVector = androidx.compose.material.icons.Icons.Filled.Star,
+                    imageVector = Icons.Filled.Favorite,
                     contentDescription = "Favorite",
                     tint = Gold,
                     modifier = Modifier
