@@ -1,6 +1,7 @@
 package com.wahrani.amine.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,6 +19,10 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Fullscreen
+import androidx.compose.material.icons.filled.FullscreenExit
+import androidx.compose.material.icons.filled.Fullscreen
+import androidx.compose.material.icons.filled.FullscreenExit
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -58,6 +63,7 @@ fun PlayerScreen(
     var player by remember { mutableStateOf<ExoPlayer?>(null) }
     var buffering by remember { mutableStateOf(true) }
     var currentChannel by remember { mutableStateOf(channel) }
+    var isFullscreen by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
     val relatedChannels = remember(currentChannel, channels) {
@@ -91,10 +97,11 @@ fun PlayerScreen(
             .background(DeepNavy)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
+            // Video section
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(0.55f)
+                    .let { if (isFullscreen) it.fillMaxSize() else it.weight(0.55f) }
                     .background(Color.Black)
             ) {
                 AndroidView(
@@ -138,14 +145,15 @@ fun PlayerScreen(
                     }
                 }
 
-                Box(modifier = Modifier.fillMaxSize()) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(Color.Black.copy(alpha = 0.6f))
-                            .padding(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                // Top overlay with back button and fullscreen toggle
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color.Black.copy(alpha = 0.6f))
+                        .padding(horizontal = 4.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (isFullscreen) {
                         IconButton(onClick = onBack) {
                             Icon(
                                 imageVector = Icons.Filled.ArrowBack,
@@ -153,14 +161,18 @@ fun PlayerScreen(
                                 tint = Color.White
                             )
                         }
-                        Column(modifier = Modifier.padding(start = 8.dp)) {
-                            Text(
-                                text = currentChannel.name,
-                                style = MaterialTheme.typography.titleMedium,
-                                color = Color.White,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
+                    }
+                    Column(
+                        modifier = Modifier.weight(1f).padding(start = if (!isFullscreen) 8.dp else 0.dp)
+                    ) {
+                        Text(
+                            text = currentChannel.name,
+                            style = MaterialTheme.typography.titleMedium,
+                            color = Color.White,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        if (!isFullscreen) {
                             Text(
                                 text = currentChannel.groupTitle,
                                 style = MaterialTheme.typography.labelSmall,
@@ -168,10 +180,27 @@ fun PlayerScreen(
                             )
                         }
                     }
+                    if (!isFullscreen) {
+                        IconButton(onClick = onBack) {
+                            Icon(
+                                imageVector = Icons.Filled.ArrowBack,
+                                contentDescription = "Back",
+                                tint = Color.White
+                            )
+                        }
+                    }
+                    IconButton(onClick = { isFullscreen = !isFullscreen }) {
+                        Icon(
+                            imageVector = if (isFullscreen) Icons.Filled.FullscreenExit else Icons.Filled.Fullscreen,
+                            contentDescription = "Toggle fullscreen",
+                            tint = Color.White
+                        )
+                    }
                 }
             }
 
-            if (relatedChannels.isNotEmpty()) {
+            // Channel list (hidden in fullscreen)
+            if (!isFullscreen && relatedChannels.isNotEmpty()) {
                 Text(
                     text = "More from ${currentChannel.groupTitle}",
                     style = MaterialTheme.typography.titleMedium,
