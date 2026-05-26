@@ -1,8 +1,10 @@
 package com.wahrani.amine.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,15 +13,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -27,10 +27,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
@@ -44,6 +42,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
@@ -53,56 +52,17 @@ import com.wahrani.amine.ui.theme.DeepNavy
 import com.wahrani.amine.ui.theme.Gold
 import com.wahrani.amine.viewmodel.MainViewModel
 
-private sealed class Section {
-    data class Header(val name: String, val count: Int) : Section()
-    data class Item(val channel: Channel) : Section()
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     viewModel: MainViewModel,
     onChannelClick: (Channel) -> Unit
 ) {
-    var showSettings by remember { mutableStateOf(false) }
-    var urlInput by remember { mutableStateOf(viewModel.playlistUrl) }
-
-    if (showSettings) {
-        AlertDialog(
-            onDismissRequest = { showSettings = false },
-            title = { Text("Playlist URL", color = Gold) },
-            text = {
-                Column {
-                    Text(
-                        "Enter the M3U playlist URL:",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    OutlinedTextField(
-                        value = urlInput,
-                        onValueChange = { urlInput = it },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                        shape = RoundedCornerShape(12.dp)
-                    )
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    showSettings = false
-                    viewModel.updatePlaylistUrl(urlInput)
-                }) {
-                    Text("Apply & Reload", color = Gold)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showSettings = false }) {
-                    Text("Cancel")
-                }
-            },
-            containerColor = DeepNavy
-        )
+    val bouquets = remember(viewModel.filteredChannels, viewModel.searchQuery) {
+        viewModel.filteredChannels
+            .groupBy { it.groupTitle }
+            .entries
+            .sortedBy { it.key }
     }
 
     Scaffold(
@@ -125,12 +85,6 @@ fun HomeScreen(
                 actions = {
                     IconButton(onClick = { viewModel.loadPlaylist() }) {
                         Icon(Icons.Filled.Refresh, "Refresh", tint = MaterialTheme.colorScheme.onSurface)
-                    }
-                    IconButton(onClick = {
-                        urlInput = viewModel.playlistUrl
-                        showSettings = true
-                    }) {
-                        Icon(Icons.Filled.Settings, "Settings", tint = MaterialTheme.colorScheme.onSurface)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -178,13 +132,13 @@ fun HomeScreen(
                         CircularProgressIndicator(color = Gold)
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
-                            text = "Loading channels...",
+                            text = "Loading...",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
-            } else if (viewModel.filteredChannels.isEmpty()) {
+            } else if (bouquets.isEmpty()) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
@@ -196,28 +150,16 @@ fun HomeScreen(
                     )
                 }
             } else {
-                val sections = viewModel.filteredChannels
-                    .groupBy { it.groupTitle }
-                    .entries
-                    .sortedBy { it.key }
-                    .flatMap { (cat, chs) ->
-                        listOf(Section.Header(cat, chs.size)) + chs.map { Section.Item(it) }
-                    }
-
-                LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    items(sections, key = {
-                        when (it) {
-                            is Section.Header -> "hdr_${it.name}"
-                            is Section.Item -> it.channel.url
-                        }
-                    }) { section ->
-                        when (section) {
-                            is Section.Header -> CategoryHeader(section.name, section.count)
-                            is Section.Item -> ChannelRow(
-                                channel = section.channel,
-                                isFavorite = section.channel.url in viewModel.favoriteUrls,
-                                onClick = { onChannelClick(section.channel) },
-                                onFavoriteClick = { viewModel.toggleFavorite(section.channel) }
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    bouquets.forEach { (category, channelList) ->
+                        item {
+                            BouquetRow(
+                                title = category,
+                                channels = channelList,
+                                onChannelClick = onChannelClick
                             )
                         }
                     }
@@ -228,57 +170,72 @@ fun HomeScreen(
 }
 
 @Composable
-private fun CategoryHeader(name: String, count: Int) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(DeepNavy)
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = name,
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-            color = Gold,
-            modifier = Modifier.weight(1f)
-        )
-        Text(
-            text = "$count",
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
-}
-
-@Composable
-private fun ChannelRow(
-    channel: Channel,
-    isFavorite: Boolean,
-    onClick: () -> Unit,
-    onFavoriteClick: () -> Unit
+private fun BouquetRow(
+    title: String,
+    channels: List<Channel>,
+    onChannelClick: (Channel) -> Unit
 ) {
-    Card(
-        onClick = onClick,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 3.dp),
-        shape = RoundedCornerShape(10.dp),
-        colors = CardDefaults.cardColors(containerColor = DarkCard)
+    Column(
+        modifier = Modifier.padding(top = 8.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(10.dp),
+                .padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = Gold,
+                modifier = Modifier.weight(1f)
+            )
+            Text(
+                text = "${channels.size}",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        Spacer(modifier = Modifier.height(6.dp))
+        LazyRow(
+            contentPadding = PaddingValues(horizontal = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            items(channels, key = { it.url }) { channel ->
+                ChannelPoster(
+                    channel = channel,
+                    onClick = { onChannelClick(channel) }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ChannelPoster(
+    channel: Channel,
+    onClick: () -> Unit
+) {
+    Card(
+        onClick = onClick,
+        modifier = Modifier
+            .width(140.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = DarkCard),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Box(
                 modifier = Modifier
-                    .width(48.dp)
-                    .height(36.dp)
+                    .width(120.dp)
+                    .height(90.dp)
                     .background(
                         MaterialTheme.colorScheme.surfaceVariant,
-                        RoundedCornerShape(6.dp)
+                        RoundedCornerShape(8.dp)
                     ),
                 contentAlignment = Alignment.Center
             ) {
@@ -286,35 +243,19 @@ private fun ChannelRow(
                     AsyncImage(
                         model = channel.logoUrl,
                         contentDescription = null,
-                        modifier = Modifier.padding(4.dp)
+                        modifier = Modifier.padding(6.dp)
                     )
                 }
             }
-            Spacer(modifier = Modifier.width(10.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = channel.name,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                if (channel.sourceLabel.isNotBlank()) {
-                    Text(
-                        text = channel.sourceLabel,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-            if (isFavorite) {
-                Icon(
-                    imageVector = Icons.Filled.Favorite,
-                    contentDescription = "Favorite",
-                    tint = Gold,
-                    modifier = Modifier.padding(start = 4.dp)
-                )
-            }
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = channel.name,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center
+            )
         }
     }
 }
