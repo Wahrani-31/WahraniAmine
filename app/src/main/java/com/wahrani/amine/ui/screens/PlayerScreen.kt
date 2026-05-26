@@ -49,9 +49,11 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import com.wahrani.amine.model.Channel
+import com.wahrani.amine.ui.theme.AlmostBlack
 import com.wahrani.amine.ui.theme.DarkCard
-import com.wahrani.amine.ui.theme.DeepNavy
-import com.wahrani.amine.ui.theme.Gold
+import com.wahrani.amine.ui.theme.TextPrimary
+import com.wahrani.amine.ui.theme.TextSecondary
+import com.wahrani.amine.ui.theme.WahraniRed
 
 @Composable
 fun PlayerScreen(
@@ -94,7 +96,7 @@ fun PlayerScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(DeepNavy)
+            .background(AlmostBlack)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             // Video section
@@ -132,7 +134,7 @@ fun PlayerScreen(
                                 modifier = Modifier
                                     .width(120.dp)
                                     .height(3.dp),
-                                color = Gold,
+                                color = WahraniRed,
                                 trackColor = Color.DarkGray
                             )
                             Spacer(modifier = Modifier.height(8.dp))
@@ -204,7 +206,7 @@ fun PlayerScreen(
                 Text(
                     text = "More from ${currentChannel.groupTitle}",
                     style = MaterialTheme.typography.titleMedium,
-                    color = Gold,
+                    color = WahraniRed,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                 )
 

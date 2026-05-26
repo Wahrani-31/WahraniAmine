@@ -44,7 +44,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     var playlistUrl by mutableStateOf("")
         private set
 
-    private val prefs = application.getSharedPreferences("wahrani", Context.MODE_PRIVATE)
+    private val prefs = application.getSharedPreferences("wahrani_dev_pro", Context.MODE_PRIVATE)
     private val defaultUrl = "https://sales-tv4ever.tv/get.php?username=MichaelBe&password=meG7eaUeXMCpEm&type=m3u_plus"
 
     init {

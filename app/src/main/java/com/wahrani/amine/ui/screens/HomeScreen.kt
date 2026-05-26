@@ -1,12 +1,19 @@
 package com.wahrani.amine.ui.screens
 
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -40,16 +47,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.wahrani.amine.model.Channel
+import com.wahrani.amine.ui.theme.AlmostBlack
 import com.wahrani.amine.ui.theme.DarkCard
-import com.wahrani.amine.ui.theme.DeepNavy
-import com.wahrani.amine.ui.theme.Gold
+import com.wahrani.amine.ui.theme.TextSecondary
+import com.wahrani.amine.ui.theme.WahraniRed
 import com.wahrani.amine.viewmodel.MainViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -71,28 +81,29 @@ fun HomeScreen(
                 title = {
                     Column {
                         Text(
-                            text = "Wahrani Amine",
+                            text = "Wahrani Dev Pro",
                             style = MaterialTheme.typography.headlineMedium,
-                            color = Gold
+                            fontWeight = FontWeight.Bold,
+                            color = WahraniRed
                         )
                         Text(
-                            text = "${viewModel.filteredChannels.size} channels",
+                            text = "by Amine  ·  ${viewModel.filteredChannels.size} channels",
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = TextSecondary
                         )
                     }
                 },
                 actions = {
                     IconButton(onClick = { viewModel.loadPlaylist() }) {
-                        Icon(Icons.Filled.Refresh, "Refresh", tint = MaterialTheme.colorScheme.onSurface)
+                        Icon(Icons.Filled.Refresh, "Refresh", tint = TextSecondary)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = DeepNavy
+                    containerColor = AlmostBlack
                 )
             )
         },
-        containerColor = DeepNavy
+        containerColor = AlmostBlack
     ) { padding ->
         Column(
             modifier = Modifier
@@ -110,14 +121,14 @@ fun HomeScreen(
                         .fillMaxWidth()
                         .padding(horizontal = 12.dp, vertical = 4.dp)
                         .background(
-                            MaterialTheme.colorScheme.error.copy(alpha = 0.1f),
+                            WahraniRed.copy(alpha = 0.15f),
                             RoundedCornerShape(8.dp)
                         )
                         .padding(12.dp)
                 ) {
                     Text(
                         text = err,
-                        color = MaterialTheme.colorScheme.error,
+                        color = WahraniRed,
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
@@ -129,12 +140,12 @@ fun HomeScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        CircularProgressIndicator(color = Gold)
+                        CircularProgressIndicator(color = WahraniRed)
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
                             text = "Loading...",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = TextSecondary
                         )
                     }
                 }
@@ -146,13 +157,13 @@ fun HomeScreen(
                     Text(
                         text = "No channels found",
                         style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = TextSecondary
                     )
                 }
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
                 ) {
                     bouquets.forEach { (category, channelList) ->
                         item {
@@ -162,6 +173,9 @@ fun HomeScreen(
                                 onChannelClick = onChannelClick
                             )
                         }
+                    }
+                    item {
+                        Spacer(modifier = Modifier.height(16.dp))
                     }
                 }
             }
@@ -186,15 +200,15 @@ private fun BouquetRow(
         ) {
             Text(
                 text = title,
-                style = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                color = Gold,
+                color = TextPrimary,
                 modifier = Modifier.weight(1f)
             )
             Text(
                 text = "${channels.size}",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                style = MaterialTheme.typography.labelSmall,
+                color = TextSecondary
             )
         }
         Spacer(modifier = Modifier.height(6.dp))
@@ -217,25 +231,41 @@ private fun ChannelPoster(
     channel: Channel,
     onClick: () -> Unit
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.92f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessHigh
+        )
+    )
+
     Card(
-        onClick = onClick,
         modifier = Modifier
-            .width(140.dp),
-        shape = RoundedCornerShape(12.dp),
+            .width(150.dp)
+            .scale(scale)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick
+            ),
+        shape = RoundedCornerShape(10.dp),
         colors = CardDefaults.cardColors(containerColor = DarkCard),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp, pressedElevation = 6.dp),
+        border = null
     ) {
         Column(
-            modifier = Modifier.padding(8.dp),
+            modifier = Modifier.padding(0.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Box(
                 modifier = Modifier
-                    .width(120.dp)
-                    .height(90.dp)
+                    .fillMaxWidth()
+                    .aspectRatio(16f / 9f)
                     .background(
-                        MaterialTheme.colorScheme.surfaceVariant,
-                        RoundedCornerShape(8.dp)
+                        DarkCard,
+                        RoundedCornerShape(topStart = 10.dp, topEnd = 10.dp)
                     ),
                 contentAlignment = Alignment.Center
             ) {
@@ -243,18 +273,23 @@ private fun ChannelPoster(
                     AsyncImage(
                         model = channel.logoUrl,
                         contentDescription = null,
-                        modifier = Modifier.padding(6.dp)
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(8.dp),
+                        contentScale = ContentScale.Fit
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(6.dp))
             Text(
                 text = channel.name,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp, vertical = 8.dp),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface,
+                color = TextPrimary,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Start
             )
         }
     }
@@ -275,14 +310,14 @@ private fun SearchBar(
         placeholder = {
             Text(
                 "Search channels...",
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = TextSecondary
             )
         },
         leadingIcon = {
             Icon(
                 imageVector = Icons.Filled.Search,
                 contentDescription = "Search",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                tint = TextSecondary
             )
         },
         trailingIcon = {
@@ -291,7 +326,7 @@ private fun SearchBar(
                     Icon(
                         imageVector = Icons.Filled.Clear,
                         contentDescription = "Clear",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        tint = TextSecondary
                     )
                 }
             }
@@ -299,12 +334,12 @@ private fun SearchBar(
         singleLine = true,
         shape = RoundedCornerShape(12.dp),
         colors = TextFieldDefaults.colors(
-            focusedContainerColor = MaterialTheme.colorScheme.surface,
-            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-            focusedIndicatorColor = Color.Transparent,
+            focusedContainerColor = DarkCard,
+            unfocusedContainerColor = DarkCard,
+            focusedIndicatorColor = WahraniRed,
             unfocusedIndicatorColor = Color.Transparent,
-            focusedTextColor = MaterialTheme.colorScheme.onSurface,
-            unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+            focusedTextColor = TextPrimary,
+            unfocusedTextColor = TextPrimary
         )
     )
 }

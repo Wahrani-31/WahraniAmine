@@ -30,7 +30,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.wahrani.amine.model.Channel
 import com.wahrani.amine.ui.theme.DarkCard
-import com.wahrani.amine.ui.theme.Gold
+import com.wahrani.amine.ui.theme.WahraniRed
 
 @Composable
 fun CategoryBar(
@@ -168,7 +168,7 @@ fun ChannelCard(
                 Icon(
                     imageVector = Icons.Filled.Favorite,
                     contentDescription = "Favorite",
-                    tint = Gold,
+                    tint = WahraniRed,
                     modifier = Modifier
                         .align(Alignment.TopStart)
                         .padding(6.dp)

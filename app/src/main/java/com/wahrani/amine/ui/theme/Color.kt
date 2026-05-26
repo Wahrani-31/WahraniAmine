@@ -2,18 +2,16 @@ package com.wahrani.amine.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Gold = Color(0xFFFFD700)
-val DarkGold = Color(0xFFB8960C)
-val DeepNavy = Color(0xFF0D1117)
-val DarkSurface = Color(0xFF161B22)
-val DarkCard = Color(0xFF1C2333)
-val DarkCardHover = Color(0xFF252D3F)
-val AccentBlue = Color(0xFF58A6FF)
-val SurfaceLight = Color(0xFF21262D)
-val TextPrimary = Color(0xFFF0F0F0)
-val TextSecondary = Color(0xFF8B949E)
-val ErrorRed = Color(0xFFF85149)
-val SuccessGreen = Color(0xFF3FB950)
-val CategoryChipBg = Color(0xFF30363D)
-val CategoryChipSelected = Gold
-val CategoryChipText = Color(0xFFC9D1D9)
+val WahraniRed = Color(0xFFE50914)
+val DarkRed = Color(0xFFB20710)
+val AlmostBlack = Color(0xFF0B0B0B)
+val DarkSurface = Color(0xFF141414)
+val DarkCard = Color(0xFF1A1A1A)
+val DarkCardHover = Color(0xFF252525)
+val TextPrimary = Color(0xFFF5F5F5)
+val TextSecondary = Color(0xFF808080)
+val ErrorRed = Color(0xFFE50914)
+val SuccessGreen = Color(0xFF1DB954)
+val CategoryChipBg = Color(0xFF2A2A2A)
+val CategoryChipSelected = WahraniRed
+val CategoryChipText = Color(0xFFCCCCCC)
