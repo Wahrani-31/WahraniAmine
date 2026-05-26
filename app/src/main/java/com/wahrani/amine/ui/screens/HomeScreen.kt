@@ -1,12 +1,6 @@
 package com.wahrani.amine.ui.screens
 
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -47,7 +41,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -58,6 +52,7 @@ import coil.compose.AsyncImage
 import com.wahrani.amine.model.Channel
 import com.wahrani.amine.ui.theme.AlmostBlack
 import com.wahrani.amine.ui.theme.DarkCard
+import com.wahrani.amine.ui.theme.TextPrimary
 import com.wahrani.amine.ui.theme.TextSecondary
 import com.wahrani.amine.ui.theme.WahraniRed
 import com.wahrani.amine.viewmodel.MainViewModel
@@ -231,29 +226,13 @@ private fun ChannelPoster(
     channel: Channel,
     onClick: () -> Unit
 ) {
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.92f else 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessHigh
-        )
-    )
-
     Card(
+        onClick = onClick,
         modifier = Modifier
-            .width(150.dp)
-            .scale(scale)
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null,
-                onClick = onClick
-            ),
+            .width(150.dp),
         shape = RoundedCornerShape(10.dp),
         colors = CardDefaults.cardColors(containerColor = DarkCard),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp, pressedElevation = 6.dp),
-        border = null
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
             modifier = Modifier.padding(0.dp),
@@ -263,10 +242,8 @@ private fun ChannelPoster(
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(16f / 9f)
-                    .background(
-                        DarkCard,
-                        RoundedCornerShape(topStart = 10.dp, topEnd = 10.dp)
-                    ),
+                    .clip(RoundedCornerShape(topStart = 10.dp, topEnd = 10.dp))
+                    .background(DarkCard),
                 contentAlignment = Alignment.Center
             ) {
                 if (channel.logoUrl.isNotBlank()) {
