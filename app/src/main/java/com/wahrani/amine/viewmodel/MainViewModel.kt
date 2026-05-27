@@ -45,7 +45,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         private set
 
     private val prefs = application.getSharedPreferences("wahrani_dev_pro", Context.MODE_PRIVATE)
-    private val defaultUrl = "https://sales-tv4ever.tv/get.php?username=MichaelBe&password=meG7eaUeXMCpEm&type=m3u_plus"
+    private val defaultUrl = "http://atlan2025.me:80/get.php?username=Rochdi70sam&password=d3hm7lsqrh&type=m3u_plus"
 
     init {
         playlistUrl = prefs.getString("playlist_url", defaultUrl) ?: defaultUrl
@@ -94,6 +94,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         conn.connectTimeout = 15000
         conn.readTimeout = 30000
         conn.instanceFollowRedirects = true
+        conn.setRequestProperty("User-Agent", "VLC/3.0.20 LibVLC/3.0.20")
         return conn.inputStream.bufferedReader().use { it.readText() }
     }
 
